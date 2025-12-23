@@ -1,3 +1,17 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: stockguard
+  mvc:
+    servlet:
+      path: /api
+
+  profiles:
+    active: ${ACTIVE_PROFILE}
+
+logging:
+  level:
+    org:
+      springframework: INFO
