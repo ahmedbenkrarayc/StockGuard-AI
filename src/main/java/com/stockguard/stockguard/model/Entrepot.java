@@ -70,8 +70,8 @@ public class Entrepot {
     @OneToMany(mappedBy = "entrepot", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Stock> stocks = new ArrayList<>();
 
-    //@OneToMany(mappedBy = "entrepot", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    //private List<HistoriqueVente> ventes = new ArrayList<>();
+    @OneToMany(mappedBy = "entrepot", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<HistoriqueVente> ventes = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
