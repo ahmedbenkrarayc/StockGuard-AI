@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.stockguard.stockguard.model.enums.Unite;
+
 
 @Entity
 @Table(name = "produits")
@@ -38,8 +40,9 @@ public class Produit {
     @Column(nullable = false)
     private Double poids;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String unite;
+    private Unite unite;
 
     @Column(name = "code_barre", unique = true)
     private String codeBarre;
@@ -59,5 +62,9 @@ public class Produit {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = java.time.LocalDateTime.now();
+    }
+
+    public String getUniteLibelle() {
+        return unite != null ? unite.getLibelle() : "";
     }
 }
