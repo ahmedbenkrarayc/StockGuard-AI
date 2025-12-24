@@ -11,6 +11,10 @@ spring:
   profiles:
     active: ${ACTIVE_PROFILE}
 
+app:
+  encryption:
+    key: ${ENCRYPTION_KEY:S3cr3tK3y1234567
+
 logging:
   level:
     org:
