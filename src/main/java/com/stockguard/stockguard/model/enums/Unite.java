@@ -18,12 +18,4 @@ public enum Unite {
     public String getLibelle() {
         return libelle;
     }
-
-    public static Unite fromString(String unite) {
-        try {
-            return Unite.valueOf(unite.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Unité invalide: " + unite);
-        }
-    }
 }
