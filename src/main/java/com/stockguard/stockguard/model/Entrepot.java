@@ -67,8 +67,8 @@ public class Entrepot {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    //@OneToMany(mappedBy = "entrepot", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    //private List<Stock> stocks = new ArrayList<>();
+    @OneToMany(mappedBy = "entrepot", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Stock> stocks = new ArrayList<>();
 
     //@OneToMany(mappedBy = "entrepot", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     //private List<HistoriqueVente> ventes = new ArrayList<>();
