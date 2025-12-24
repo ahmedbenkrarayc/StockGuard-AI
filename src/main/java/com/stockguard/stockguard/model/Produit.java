@@ -2,12 +2,12 @@ package com.stockguard.stockguard.model;
 
 import com.stockguard.stockguard.model.enums.Unite;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -21,33 +21,45 @@ public class Produit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 200)
+    @NotBlank(message = "Le nom du produit est obligatoire")
+    @Size(min = 2, max = 100, message = "Le nom doit contenir entre 2 et 100 caractères")
+    @Column(nullable = false)
     private String nom;
 
-    @Column(columnDefinition = "TEXT")
+    @Size(max = 500, message = "La description ne peut pas dépasser 500 caractères")
+    @Column(length = 500)
     private String description;
 
-    @Column(nullable = false, length = 100)
+    @NotBlank(message = "La catégorie est obligatoire")
+    @Size(min = 2, max = 50, message = "La catégorie doit contenir entre 2 et 50 caractères")
+    @Column(nullable = false)
     private String categorie;
 
-    @Column(name = "prix_vente", nullable = false, precision = 10, scale = 2)
+    @NotNull(message = "Le prix de vente est obligatoire")
+    @DecimalMin(value = "0.01", message = "Le prix de vente doit être supérieur à 0")
+    @Column(nullable = false, precision = 10, scale = 2)
     private Double prixVente;
 
-    @Column(name = "prix_achat_chiffre", nullable = false, columnDefinition = "TEXT")
-    private String prixAchatChiffre;
+    @NotNull(message = "Le prix d'achat est obligatoire")
+    @DecimalMin(value = "0.01", message = "Le prix d'achat doit être supérieur à 0")
+    @Column(nullable = false, precision = 10, scale = 2)
+    private Double prixAchat;
 
-    @Column(name = "marge_chiffree", nullable = false, columnDefinition = "TEXT")
-    private String margeChiffree;
+    @Column(precision = 5, scale = 2)
+    private Double marge;
 
+    @NotNull(message = "Le poids est obligatoire")
+    @DecimalMin(value = "0.01", message = "Le poids doit être supérieur à 0")
     @Column(nullable = false, precision = 10, scale = 3)
     private Double poids;
 
+    @NotNull(message = "L'unité est obligatoire")
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false)
     private Unite unite;
 
-    @Column(name = "code_barre", unique = true, length = 50)
-    private String codeBarre;
+    @Column(nullable = false)
+    private Boolean actif = true;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -55,29 +67,26 @@ public class Produit {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    //@OneToMany(mappedBy = "produit", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    //private List<Stock> stocks = new ArrayList<>();
+    //@OneToMany(mappedBy = "produit", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    //private List<Stock> stocks;
 
-    //@OneToMany(mappedBy = "produit", fetch = FetchType.LAZY)
-    //private List<HistoriqueVente> historiqueVentes = new ArrayList<>();
+    //@OneToMany(mappedBy = "produit", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    //private List<HistoriqueVente> ventes;
 
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+        if (prixAchat != null && prixVente != null && prixAchat > 0) {
+            marge = ((prixVente - prixAchat) / prixAchat) * 100;
+        }
     }
 
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
-    }
-
-    public String getUniteLibelle() {
-        return unite != null ? unite.getLibelle() : "";
-    }
-
-    // Méthode pour calculer la marge
-    public Double calculerMarge(Double prixAchat) {
-        return prixVente - prixAchat;
+        if (prixAchat != null && prixVente != null && prixAchat > 0) {
+            marge = ((prixVente - prixAchat) / prixAchat) * 100;
+        }
     }
 }
