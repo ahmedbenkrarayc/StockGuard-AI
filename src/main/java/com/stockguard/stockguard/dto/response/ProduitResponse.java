@@ -18,8 +18,8 @@ public class ProduitResponse {
     private String description;
     private String categorie;
     private BigDecimal prixVente;
-    private BigDecimal prixAchat;
-    private BigDecimal marge;
+    private BigDecimal prixAchat; // Déchiffré
+    private BigDecimal marge; // Déchiffré
     private BigDecimal poids;
     private Unite unite;
     private Boolean actif;

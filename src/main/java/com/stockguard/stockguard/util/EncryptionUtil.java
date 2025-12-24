@@ -18,10 +18,11 @@ public class EncryptionUtil {
     private final SecretKeySpec secretKey;
 
     public EncryptionUtil(@Value("${app.encryption.key}") String encryptionKey) {
-        // Ajuster la clé à 16 bytes pour AES-128
+        // Assurer que la clé fait exactement 16 bytes pour AES-128
         byte[] keyBytes = encryptionKey.getBytes(StandardCharsets.UTF_8);
         byte[] validKey = new byte[16];
 
+        // Copier les bytes de la clé fournie
         int length = Math.min(keyBytes.length, validKey.length);
         System.arraycopy(keyBytes, 0, validKey, 0, length);
 
@@ -57,10 +58,16 @@ public class EncryptionUtil {
     }
 
     public String encryptBigDecimal(BigDecimal value) {
+        if (value == null) {
+            return null;
+        }
         return encrypt(value.toString());
     }
 
     public BigDecimal decryptBigDecimal(String encryptedValue) {
+        if (encryptedValue == null || encryptedValue.isEmpty()) {
+            return null;
+        }
         String decrypted = decrypt(encryptedValue);
         return new BigDecimal(decrypted);
     }

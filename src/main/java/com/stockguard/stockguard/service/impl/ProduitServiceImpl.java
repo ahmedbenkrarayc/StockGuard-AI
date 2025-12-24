@@ -5,6 +5,7 @@ import com.stockguard.stockguard.dto.response.ProduitResponse;
 import com.stockguard.stockguard.exception.ResourceNotFoundException;
 import com.stockguard.stockguard.mapper.ProduitMapper;
 import com.stockguard.stockguard.model.Produit;
+import com.stockguard.stockguard.model.enums.Unite;
 import com.stockguard.stockguard.repository.ProduitRepository;
 import com.stockguard.stockguard.service.ProduitService;
 import com.stockguard.stockguard.util.EncryptionUtil;
@@ -33,72 +34,71 @@ public class ProduitServiceImpl implements ProduitService {
         log.info("Création d'un nouveau produit: {}", request.getNom());
 
         // Vérifier si le produit existe déjà
-        if (produitRepository.findByNom(request.getNom()).isPresent()) {
-            throw new IllegalArgumentException("Un produit avec le nom '" + request.getNom() + "' existe déjà");
-        }
+        produitRepository.findByNom(request.getNom())
+                .ifPresent(existing -> {
+                    throw new IllegalArgumentException("Un produit avec le nom '" + request.getNom() + "' existe déjà");
+                });
 
-        // Vérifier les prix avec BigDecimal
+        // Vérifier que le prix de vente > prix d'achat
         if (request.getPrixAchat().compareTo(request.getPrixVente()) >= 0) {
             throw new IllegalArgumentException("Le prix de vente doit être supérieur au prix d'achat");
         }
 
         Produit produit = produitMapper.toEntity(request);
 
-        // Chiffrer le prix d'achat (BigDecimal)
+        // Chiffrer le prix d'achat
         produit.setPrixAchatChiffre(encryptionUtil.encryptBigDecimal(request.getPrixAchat()));
 
-        // Calculer et chiffrer la marge (BigDecimal)
+        // Calculer et chiffrer la marge
         BigDecimal marge = calculerMarge(request.getPrixVente(), request.getPrixAchat());
         produit.setMargeChiffree(encryptionUtil.encryptBigDecimal(marge));
 
         Produit savedProduit = produitRepository.save(produit);
 
         log.info("Produit créé avec succès: ID {}", savedProduit.getId());
-
-        // Retourner la réponse sans les données sensibles
-        return createResponseForRole(savedProduit, "USER");
+        return createProduitResponse(savedProduit);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ProduitResponse getProduitById(Long id, String role) {
-        log.debug("Recherche du produit avec ID: {} pour le rôle: {}", id, role);
+    public ProduitResponse getProduitById(Long id) {
+        log.debug("Recherche du produit avec ID: {}", id);
 
         Produit produit = produitRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produit non trouvé avec ID: " + id));
 
-        return createResponseForRole(produit, role);
+        return createProduitResponse(produit);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProduitResponse> getAllProduits(String role) {
-        log.debug("Récupération de tous les produits pour le rôle: {}", role);
+    public List<ProduitResponse> getAllProduits() {
+        log.debug("Récupération de tous les produits");
 
         return produitRepository.findAll().stream()
-                .map(produit -> createResponseForRole(produit, role))
+                .map(this::createProduitResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProduitResponse> getProduitsActifs(String role) {
-        log.debug("Récupération des produits actifs pour le rôle: {}", role);
+    public List<ProduitResponse> getProduitsActifs() {
+        log.debug("Récupération des produits actifs");
 
         return produitRepository.findByActifTrue().stream()
-                .map(produit -> createResponseForRole(produit, role))
+                .map(this::createProduitResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
-    public ProduitResponse updateProduit(Long id, ProduitRequest request, String role) {
+    public ProduitResponse updateProduit(Long id, ProduitRequest request) {
         log.info("Mise à jour du produit avec ID: {}", id);
 
         Produit produit = produitRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Produit non trouvé avec ID: " + id));
 
-        // Vérifier si le nouveau nom n'est pas déjà utilisé
+        // Vérifier si le nouveau nom n'est pas déjà utilisé par un autre produit
         if (!produit.getNom().equals(request.getNom())) {
             produitRepository.findByNom(request.getNom())
                     .ifPresent(existing -> {
@@ -108,12 +108,12 @@ public class ProduitServiceImpl implements ProduitService {
                     });
         }
 
-        // Vérifier les prix avec BigDecimal
+        // Vérifier que le prix de vente > prix d'achat
         if (request.getPrixAchat().compareTo(request.getPrixVente()) >= 0) {
             throw new IllegalArgumentException("Le prix de vente doit être supérieur au prix d'achat");
         }
 
-        // Mettre à jour les champs non sensibles
+        // Mettre à jour les champs de base
         produit.setNom(request.getNom());
         produit.setDescription(request.getDescription());
         produit.setCategorie(request.getCategorie());
@@ -122,19 +122,17 @@ public class ProduitServiceImpl implements ProduitService {
         produit.setUnite(request.getUnite());
         produit.setActif(request.getActif());
 
-        // Mettre à jour le prix d'achat chiffré (seulement si ADMIN)
-        if ("ADMIN".equals(role)) {
-            produit.setPrixAchatChiffre(encryptionUtil.encryptBigDecimal(request.getPrixAchat()));
+        // Chiffrer le nouveau prix d'achat
+        produit.setPrixAchatChiffre(encryptionUtil.encryptBigDecimal(request.getPrixAchat()));
 
-            // Recalculer la marge
-            BigDecimal marge = calculerMarge(request.getPrixVente(), request.getPrixAchat());
-            produit.setMargeChiffree(encryptionUtil.encryptBigDecimal(marge));
-        }
+        // Recalculer et chiffrer la marge
+        BigDecimal marge = calculerMarge(request.getPrixVente(), request.getPrixAchat());
+        produit.setMargeChiffree(encryptionUtil.encryptBigDecimal(marge));
 
         Produit updatedProduit = produitRepository.save(produit);
 
         log.info("Produit mis à jour avec succès: ID {}", updatedProduit.getId());
-        return createResponseForRole(updatedProduit, role);
+        return createProduitResponse(updatedProduit);
     }
 
     @Override
@@ -182,6 +180,52 @@ public class ProduitServiceImpl implements ProduitService {
         log.info("Produit activé avec succès: ID {}", id);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProduitResponse> getProduitsByCategorie(String categorie) {
+        log.debug("Récupération des produits par catégorie: {}", categorie);
+
+        return produitRepository.findByCategorie(categorie).stream()
+                .map(this::createProduitResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProduitResponse> searchProduits(String keyword) {
+        log.debug("Recherche de produits avec le mot-clé: {}", keyword);
+
+        return produitRepository.findByNomContainingIgnoreCase(keyword).stream()
+                .map(this::createProduitResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProduitResponse> getProduitsByUnite(Unite unite) {
+        log.debug("Récupération des produits par unité: {}", unite);
+
+        return produitRepository.findByUnite(unite).stream()
+                .map(this::createProduitResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> getAllCategories() {
+        log.debug("Récupération de toutes les catégories");
+
+        return produitRepository.findAllCategories();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long countProduitsActifs() {
+        log.debug("Comptage des produits actifs");
+
+        return produitRepository.countByActifTrue();
+    }
+
     private BigDecimal calculerMarge(BigDecimal prixVente, BigDecimal prixAchat) {
         if (prixAchat.compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ZERO;
@@ -193,38 +237,23 @@ public class ProduitServiceImpl implements ProduitService {
         return marge.multiply(new BigDecimal("100"));
     }
 
-    private ProduitResponse createResponseForRole(Produit produit, String role) {
+    private ProduitResponse createProduitResponse(Produit produit) {
         ProduitResponse response = produitMapper.toResponse(produit);
 
-        // Masquer les données sensibles pour les non-ADMIN
-        if (!"ADMIN".equals(role)) {
-            response.setPrixAchat(null);
-            response.setMarge(null);
-        } else {
-            // Déchiffrer pour l'ADMIN
-            try {
-                response.setPrixAchat(encryptionUtil.decryptBigDecimal(produit.getPrixAchatChiffre()));
-                response.setMarge(encryptionUtil.decryptBigDecimal(produit.getMargeChiffree()));
-            } catch (Exception e) {
-                log.error("Erreur lors du déchiffrement pour l'ADMIN", e);
-                response.setPrixAchat(BigDecimal.ZERO);
-                response.setMarge(BigDecimal.ZERO);
-            }
+        // Déchiffrer le prix d'achat et la marge
+        try {
+            BigDecimal prixAchatDecrypte = encryptionUtil.decryptBigDecimal(produit.getPrixAchatChiffre());
+            BigDecimal margeDecryptee = encryptionUtil.decryptBigDecimal(produit.getMargeChiffree());
+
+            response.setPrixAchat(prixAchatDecrypte);
+            response.setMarge(margeDecryptee);
+        } catch (Exception e) {
+            log.error("Erreur lors du déchiffrement pour le produit ID {}: {}", produit.getId(), e.getMessage());
+            // En cas d'erreur, on met des valeurs par défaut
+            response.setPrixAchat(BigDecimal.ZERO);
+            response.setMarge(BigDecimal.ZERO);
         }
 
         return response;
-    }
-
-    // Méthodes simplifiées pour tests (sans gestion de rôle)
-    @Override
-    @Transactional(readOnly = true)
-    public ProduitResponse getProduitById(Long id) {
-        return getProduitById(id, "USER");
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProduitResponse> getAllProduits() {
-        return getAllProduits("USER");
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,7 +25,7 @@ public interface ProduitRepository extends JpaRepository<Produit, Long> {
     List<Produit> findByUnite(Unite unite);
 
     @Query("SELECT p FROM Produit p WHERE p.prixVente BETWEEN :min AND :max")
-    List<Produit> findByPrixVenteBetween(@Param("min") Double min, @Param("max") Double max);
+    List<Produit> findByPrixVenteBetween(@Param("min") BigDecimal min, @Param("max") BigDecimal max);
 
     @Query("SELECT DISTINCT p.categorie FROM Produit p WHERE p.categorie IS NOT NULL")
     List<String> findAllCategories();
