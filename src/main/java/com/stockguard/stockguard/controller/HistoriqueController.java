@@ -21,7 +21,7 @@ import java.util.Map;
 
 @Tag(name = "Historique des Ventes", description = "API de gestion de l'historique des ventes")
 @RestController
-@RequestMapping("/api/historique")
+@RequestMapping("/historique")
 @RequiredArgsConstructor
 public class HistoriqueController {
 
