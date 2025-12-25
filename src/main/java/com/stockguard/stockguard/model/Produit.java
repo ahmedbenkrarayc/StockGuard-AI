@@ -42,8 +42,6 @@ public class Produit {
     @Column(name = "prix_vente", nullable = false, precision = 10, scale = 2)
     private BigDecimal prixVente;
 
-    @NotNull(message = "Le prix d'achat est obligatoire")
-    @DecimalMin(value = "0.01", message = "Le prix d'achat doit être supérieur à 0")
     @Column(name = "prix_achat_chiffre", nullable = false, columnDefinition = "TEXT")
     private String prixAchatChiffre;
 
