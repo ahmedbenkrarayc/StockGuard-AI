@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -29,6 +30,7 @@ public class HistoriqueController {
 
     @Operation(summary = "Créer un nouvel historique de vente")
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<HistoriqueResponse> createHistorique(@Valid @RequestBody HistoriqueRequest request) {
         HistoriqueResponse response = historiqueService.createHistorique(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -36,6 +38,7 @@ public class HistoriqueController {
 
     @Operation(summary = "Récupérer un historique par son ID")
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<HistoriqueResponse> getHistoriqueById(
             @Parameter(description = "ID de l'historique") @PathVariable Long id) {
         HistoriqueResponse response = historiqueService.getHistoriqueById(id);
@@ -44,6 +47,7 @@ public class HistoriqueController {
 
     @Operation(summary = "Récupérer tous les historiques de tous les entrepôts")
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<HistoriqueResponse>> getAllHistoriques() {
         List<HistoriqueResponse> historiques = historiqueService.getAllHistoriques();
         return ResponseEntity.ok(historiques);
@@ -51,6 +55,7 @@ public class HistoriqueController {
 
     @Operation(summary = "Récupérer les historiques par entrepôt")
     @GetMapping("/entrepot/{entrepotId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<HistoriqueResponse>> getHistoriquesByEntrepot(
             @Parameter(description = "ID de l'entrepôt") @PathVariable Long entrepotId) {
         List<HistoriqueResponse> historiques = historiqueService.getHistoriquesByEntrepot(entrepotId);
@@ -59,6 +64,7 @@ public class HistoriqueController {
 
     @Operation(summary = "Récupérer les historiques par produit")
     @GetMapping("/produit/{produitId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<HistoriqueResponse>> getHistoriquesByProduit(
             @Parameter(description = "ID du produit") @PathVariable Long produitId) {
         List<HistoriqueResponse> historiques = historiqueService.getHistoriquesByProduit(produitId);
@@ -67,6 +73,7 @@ public class HistoriqueController {
 
     @Operation(summary = "Récupérer les historiques par période")
     @GetMapping("/periode")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<HistoriqueResponse>> getHistoriquesByDateRange(
             @Parameter(description = "Date de début (format: yyyy-MM-dd)")
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -78,6 +85,7 @@ public class HistoriqueController {
 
     @Operation(summary = "Récupérer les historiques par entrepôt et période")
     @GetMapping("/entrepot/{entrepotId}/periode")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<HistoriqueResponse>> getHistoriquesByEntrepotAndDateRange(
             @Parameter(description = "ID de l'entrepôt") @PathVariable Long entrepotId,
             @Parameter(description = "Date de début (format: yyyy-MM-dd)")
@@ -91,6 +99,7 @@ public class HistoriqueController {
 
     @Operation(summary = "Récupérer les historiques par jour de semaine")
     @GetMapping("/jour-semaine/{jourSemaine}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<HistoriqueResponse>> getHistoriquesByJourSemaine(
             @Parameter(description = "Jour de semaine (ex: LUNDI, MARDI, etc.)")
             @PathVariable JourSemaine jourSemaine) {
@@ -100,6 +109,7 @@ public class HistoriqueController {
 
     @Operation(summary = "Récupérer les historiques par entrepôt et jour de semaine")
     @GetMapping("/entrepot/{entrepotId}/jour-semaine/{jourSemaine}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<HistoriqueResponse>> getHistoriquesByEntrepotAndJourSemaine(
             @Parameter(description = "ID de l'entrepôt") @PathVariable Long entrepotId,
             @Parameter(description = "Jour de semaine") @PathVariable JourSemaine jourSemaine) {
@@ -110,6 +120,7 @@ public class HistoriqueController {
 
     @Operation(summary = "Obtenir le total des ventes pour un produit et un entrepôt")
     @GetMapping("/stats/total-ventes")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Long> getTotalVentesByProduitAndEntrepot(
             @Parameter(description = "ID du produit") @RequestParam Long produitId,
             @Parameter(description = "ID de l'entrepôt") @RequestParam Long entrepotId) {
@@ -119,6 +130,7 @@ public class HistoriqueController {
 
     @Operation(summary = "Obtenir les ventes par jour de semaine pour un produit et entrepôt")
     @GetMapping("/stats/ventes-par-jour")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<JourSemaine, Long>> getVentesParJourSemaine(
             @Parameter(description = "ID du produit") @RequestParam Long produitId,
             @Parameter(description = "ID de l'entrepôt") @RequestParam Long entrepotId) {
@@ -128,6 +140,7 @@ public class HistoriqueController {
 
     @Operation(summary = "Obtenir le chiffre d'affaires par jour de semaine")
     @GetMapping("/stats/ca-par-jour")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<JourSemaine, BigDecimal>> getChiffreAffairesParJourSemaine(
             @Parameter(description = "ID du produit") @RequestParam Long produitId,
             @Parameter(description = "ID de l'entrepôt") @RequestParam Long entrepotId) {
@@ -137,6 +150,7 @@ public class HistoriqueController {
 
     @Operation(summary = "Obtenir le meilleur jour de vente pour un produit")
     @GetMapping("/stats/meilleur-jour")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<JourSemaine> getMeilleurJourSemainePourProduit(
             @Parameter(description = "ID du produit") @RequestParam Long produitId,
             @Parameter(description = "ID de l'entrepôt") @RequestParam Long entrepotId) {
@@ -146,6 +160,7 @@ public class HistoriqueController {
 
     @Operation(summary = "Obtenir les statistiques globales par jour de semaine pour un entrepôt")
     @GetMapping("/stats/globales/{entrepotId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> getStatistiquesGlobalesParJourSemaine(
             @Parameter(description = "ID de l'entrepôt") @PathVariable Long entrepotId) {
         Map<String, Object> stats = historiqueService.getStatistiquesGlobalesParJourSemaine(entrepotId);
@@ -154,6 +169,7 @@ public class HistoriqueController {
 
     @Operation(summary = "Obtenir les ventes par mois pour un produit et entrepôt")
     @GetMapping("/stats/ventes-par-mois")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Object[]>> getVentesParMois(
             @Parameter(description = "ID du produit") @RequestParam Long produitId,
             @Parameter(description = "ID de l'entrepôt") @RequestParam Long entrepotId,
