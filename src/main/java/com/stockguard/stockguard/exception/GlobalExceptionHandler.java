@@ -3,8 +3,8 @@ package com.stockguard.stockguard.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-//import org.springframework.security.access.AccessDeniedException;
-//import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -86,37 +86,37 @@ public class GlobalExceptionHandler {
                 ));
     }
 
-//    @ExceptionHandler(AuthenticationException.class)
-//    public ResponseEntity<Map<String, Object>> handleAuthentication(
-//            AuthenticationException ex,
-//            HttpServletRequest request
-//    ) {
-//        return ResponseEntity
-//                .status(HttpStatus.UNAUTHORIZED)
-//                .body(Map.of(
-//                        "timestamp", LocalDateTime.now().toString(),
-//                        "status", 401,
-//                        "error", "Unauthorized",
-//                        "message", ex.getMessage(),
-//                        "path", request.getRequestURI()
-//                ));
-//    }
-//
-//    @ExceptionHandler(AccessDeniedException.class)
-//    public ResponseEntity<Map<String, Object>> handleAccessDenied(
-//            AccessDeniedException ex,
-//            HttpServletRequest request
-//    ) {
-//        return ResponseEntity
-//                .status(HttpStatus.FORBIDDEN)
-//                .body(Map.of(
-//                        "timestamp", LocalDateTime.now().toString(),
-//                        "status", 403,
-//                        "error", "Forbidden",
-//                        "message", ex.getMessage(),
-//                        "path", request.getRequestURI()
-//                ));
-//    }
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Map<String, Object>> handleAuthentication(
+            AuthenticationException ex,
+            HttpServletRequest request
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of(
+                        "timestamp", LocalDateTime.now().toString(),
+                        "status", 401,
+                        "error", "Unauthorized",
+                        "message", ex.getMessage(),
+                        "path", request.getRequestURI()
+                ));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(
+            AccessDeniedException ex,
+            HttpServletRequest request
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(Map.of(
+                        "timestamp", LocalDateTime.now().toString(),
+                        "status", 403,
+                        "error", "Forbidden",
+                        "message", ex.getMessage(),
+                        "path", request.getRequestURI()
+                ));
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleInternalError(
