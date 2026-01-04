@@ -15,6 +15,15 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     defer-datasource-initialization: true
 
+  ai:
+    openai:
+      api-key: ${OPENROUTER_API_KEY}
+      base-url: https://openrouter.ai/api/v1
+      chat:
+        options:
+          # DeepSeek model via OpenRouter
+          model: deepseek/deepseek-chat
+
 logging:
   level:
     org:
@@ -28,3 +37,4 @@ logging:
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION}
+
