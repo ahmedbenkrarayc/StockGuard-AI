@@ -24,34 +24,48 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService userDetailsService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
+
         final String authHeader = request.getHeader("Authorization");
-        String username = null;
-        String jwt = null;
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            jwt = authHeader.substring(7);
-            username = jwtUtil.extractUsername(jwt);
-        }
+            String jwt = authHeader.substring(7);
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            try {
+                String username = jwtUtil.extractUsername(jwt);
 
-            boolean isValid = jwtUtil.validateToken(jwt);
-            boolean isActive = userDetails.isEnabled();
+                if (username != null &&
+                        SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            if (isValid && isActive) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            } else {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.getWriter().write("User is inactive or token invalid");
-                return;
+                    UserDetails userDetails =
+                            userDetailsService.loadUserByUsername(username);
+
+                    if (jwtUtil.validateToken(jwt) && userDetails.isEnabled()) {
+                        UsernamePasswordAuthenticationToken authToken =
+                                new UsernamePasswordAuthenticationToken(
+                                        userDetails,
+                                        null,
+                                        userDetails.getAuthorities()
+                                );
+
+                        authToken.setDetails(
+                                new WebAuthenticationDetailsSource()
+                                        .buildDetails(request)
+                        );
+
+                        SecurityContextHolder.getContext()
+                                .setAuthentication(authToken);
+                    }
+                }
+            } catch (Exception e) {
+                SecurityContextHolder.clearContext();
             }
-
-            filterChain.doFilter(request, response);
         }
+
+        filterChain.doFilter(request, response);
     }
 }
