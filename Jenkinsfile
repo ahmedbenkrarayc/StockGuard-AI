@@ -41,7 +41,7 @@ pipeline {
 
         stage('Deploy to Server') {
             steps {
-                sshagent(credentials: ['ubuntu-ssh']) {
+                sshagent(credentials: ['stockguard-ssh']) {
                     echo "Copying Docker tar to server..."
                     sh "scp -P ${SSH_PORT} ${TAR_NAME} ahmed@${SERVER_IP}:${REMOTE_DIR}"
 
